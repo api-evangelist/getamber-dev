@@ -64,5 +64,10 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Ambr is a company surfaced via the API Evangelist harvest backlog (source: a2a-registry) and added to the network as a stub for full-pipeline profiling.
-- https://getamber.dev/
+Ambr (ambr.run; platform getamber.dev) is the Agent Mandate & Binding Registry — an agent-native service that creates, signs, verifies and revokes dual-format Ricardian contracts for AI agents (delegation mandates, agent-to-agent commerce, agent-to-consumer agreements), hashed with SHA-256 and minted as ERC-721 cNFTs on Base L2. It exposes a JSON REST API, a remote MCP server and an A2A JSON-RPC endpoint discovered through an agent card. This profile was enriched 2026-09-19 from Ambr's public surface: the agent card, the live MCP tools/list, the pricing and health endpoints, the docs and developers pages, the legal pages, and the getambr/ambr repository (CHANGELOG, SECURITY.md, MIT contract-template JSON Schemas). Ambr publishes no OpenAPI and no SDK.
+
+- Website: https://ambr.run/
+- Platform / API host: https://getamber.dev/
+- Docs: https://getamber.dev/docs · Developers: https://getamber.dev/developers
+- Agent card: https://getamber.dev/.well-known/agent-card.json · MCP: https://getamber.dev/api/mcp · A2A: https://getamber.dev/api/a2a
+- Source: https://github.com/getambr/ambr

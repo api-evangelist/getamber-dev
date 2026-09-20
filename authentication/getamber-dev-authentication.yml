@@ -1,0 +1,79 @@
+generated: '2026-09-19'
+method: searched
+source: >-
+  https://getamber.dev/docs (Get a Free Developer Key, REST API, x402 Pay-per-mandate, Wallet Auth),
+  https://getamber.dev/developers (endpoint table, /v1/keys, /wallet-auth, /dashboard/wallet-auth), the A2A
+  agent card securitySchemes (a2a/getamber-dev-agent-card.json), the MCP tools/list descriptions
+  (mcp/getamber-dev-mcp-tools.json) and live anonymous responses observed 2026-09-19. Ambr publishes no
+  OpenAPI, so derive-authentication.py (which reads securitySchemes) produced nothing; this profile is
+  hand-written from the documentation and the agent card, which is the one machine-readable place Ambr
+  declares its schemes.
+docs: https://getamber.dev/docs
+summary:
+  types: [apiKey, x402-payment, wallet-signature, share-token, session-token]
+  primary: apiKey
+  oauth2: false
+  oidc: false
+  discovery: 'none — /.well-known/oauth-authorization-server, /oauth-protected-resource and /openid-configuration 404 on getamber.dev and ambr.run'
+schemes:
+- name: apiKey
+  type: apiKey
+  in: header
+  header: X-API-Key
+  key_prefix: 'amb_ (docs page: response.api_key → "amb_..."); the developers page''s /v1/keys snippet shows "ambr_live_..." — the two pages disagree and the docs page is the newer wording'
+  issuance: 'POST /api/v1/keys or the /activate page: enter an email, click a one-time magic link (expires in 30 minutes) — that verifies the address and reveals the key. Developer tier is free (25 credits); paid tiers verify a Base L2 USDC tx_hash or Stripe checkout.'
+  storage: 'Keys are stored as SHA-256 hashes and shown once; a lost key is replaced by requesting a new link (docs, privacy policy §1).'
+  applies_to: 'POST /v1/contracts (or x402), GET /v1/contracts/:id (or share token), POST /v1/contracts/:id/revoke (or wallet signature), POST /v1/dashboard, POST /v1/identity/verify (or share token), /v1/delegations; MCP state-changing tools (ambr_create_contract, ambr_agent_handshake)'
+  observed: 'GET /api/v1/contracts without a key -> 401 {"error":"unauthorized","message":"Valid API key required via X-API-Key header, or provide ?wallet= with signature headers"}'
+  agent_card_declaration: '{"type":"apiKey","in":"header","name":"X-API-Key","description":"Pre-registered API key for businesses with credit-based access"}'
+- name: x402
+  type: http
+  scheme: x402
+  header: X-Payment
+  description: >-
+    Pay-per-contract instead of an API key: the client pays on Base L2 (USDC, USDbC, DAI, ETH, WETH, cbETH,
+    cbBTC) and retries with the transaction hash in X-Payment. Unpaid paid-endpoint calls receive HTTP 402
+    with x402 payment instructions (REST) or JSON-RPC -32001 "Payment required" with the same payload
+    (MCP). Observed live 2026-09-19 on ambr_create_contract: version "2", price 500000, currency USD,
+    chain base, recipient address, accepts [exact, overpay], accepted_tokens[7], pricing per template.
+    "This enables fully autonomous agent-to-agent commerce without pre-registration." (docs)
+  applies_to: [POST /v1/contracts, MCP ambr_create_contract]
+  agent_card_declaration: '{"type":"http","scheme":"x402","description":"Pay-per-contract via USDC on Base L2. Send payment, include tx hash in X-Payment header."}'
+- name: walletSignature
+  type: custom
+  scheme: ECDSA wallet signature (EIP-191 personal_sign style message)
+  description: >-
+    Counterparties and principals authenticate by signing a challenge message with an EVM wallet; the body
+    carries wallet_address, signature and message. Used to sign (message must contain "I am signing Ambr
+    contract <id>" and the SHA-256 hash), to revoke ("I revoke Ambr contract <id> with hash <sha256>"),
+    for handshake approval, and on POST /v1/contracts/:id/wallet-auth which returns a short-lived JWT
+    access_token for contract reads. POST /v1/dashboard/wallet-auth returns a dashboard session_token
+    sent in the Authorization header. "Wallet-as-identity. No profiles, no onboarding forms." (README)
+  applies_to: ['POST /v1/contracts/:id/sign', 'POST /v1/contracts/:id/handshake', 'POST /v1/contracts/:id/revoke', 'POST /v1/contracts/:id/wallet-auth', 'POST /v1/dashboard/wallet-auth']
+- name: shareToken
+  type: apiKey
+  in: query
+  parameter: token
+  description: >-
+    A time-limited read token embedded in the reader_url returned on contract creation
+    (https://getamber.dev/reader/<hash>?token=...). Grants the counterparty read access to the full
+    contract without an API key. Privacy policy: default expiry 7 days, maximum 1 year, validated
+    server-side.
+  applies_to: ['GET /v1/contracts/:id', '/reader/*', 'handshake and sign flows']
+- name: sessionToken
+  type: http
+  scheme: bearer
+  description: Dashboard session token returned by POST /v1/dashboard/wallet-auth, "use in Authorization header for dashboard API".
+  applies_to: [POST /v1/dashboard]
+public_endpoints:
+  note: 'These need no credential at all (docs endpoint table Auth = None, plus observed 200s).'
+  list:
+  - GET /api/v1/templates
+  - GET /api/v1/pricing
+  - GET /api/health
+  - 'GET /api/v1/contracts/:id/status'
+  - GET /.well-known/agent-card.json
+  - MCP initialize, tools/list and read-only tools
+  - A2A message/send routing
+mcp_auth: 'X-API-Key header on the MCP HTTP request (client config in docs); read-only tools anonymous; paid tools x402 or key'
+a2a_auth: 'card security: [{apiKey: []}, {x402: []}]'

@@ -1,18 +1,149 @@
 aid: getamber-dev
 name: Ambr
-description: 'Ambr is a company surfaced via the API Evangelist harvest backlog (source: a2a-registry)
-  and added to the network as a stub for full-pipeline profiling.'
+description: >-
+  Ambr (ambr.run; platform and API host getamber.dev) is the "Agent Mandate & Binding Registry" — an agent-native service that creates, signs, verifies and revokes Ricardian contracts for AI agents: delegation mandates recording who authorized an agent, in what scope and under which law, plus agent-to-agent commerce and agent-to-consumer agreements. Every contract is dual-format — legal prose and machine-parsable JSON bound by one SHA-256 hash (urn:ambr:ricardian-v1, MIT) — and once signed by both wallets is minted as an ERC-721 cNFT on Base L2. The surface is a JSON REST API at getamber.dev/api/v1 with a public pricing endpoint, a remote MCP server at /api/mcp (six tools, anonymous tools/list) and an A2A JSON-RPC endpoint discovered via /.well-known/agent-card.json. Auth is an X-API-Key, x402 pay-per-contract on Base, or an ECDSA wallet signature; 25 free developer contracts. No OpenAPI or SDK is published. Not Amber International (Nasdaq: AMBR).
+image: https://ambr.run/logo.png
 url: https://raw.githubusercontent.com/api-evangelist/getamber-dev/refs/heads/main/apis.yml
 x-type: company
 x-source: harvest:a2a-registry
-x-tier: stub
-x-tier-reason: harvest
+x-tier: enriched
+x-tier-reason: enrichment pass 2026-09-19 (local-v3)
+x-domains:
+  website: ambr.run
+  platform: getamber.dev
+  note: getamber.dev/ 307s to ambr.run/; the API, MCP, A2A, docs, dashboard and agent card all live on getamber.dev, the marketing site and legal pages on ambr.run. Both are Ambr (agent card provider.url, llms.txt, README). The slug follows the domain the harvest recorded.
+position: Producing
 specificationVersion: '0.20'
 created: '2026-09-19'
 modified: '2026-09-19'
 tags:
 - Company
-apis: []
+- AI Agents
+- Agent Commerce
+- Contracts
+- Legal
+- Ricardian Contracts
+- Delegation
+- Blockchain
+- Base L2
+- MCP
+- A2A
+- x402
+- agent-native
+apis:
+- aid: getamber-dev:ambr-rest-api
+  name: Ambr REST API
+  description: >-
+    JSON REST API at https://getamber.dev/api/v1 for the full mandate lifecycle: list templates (public),
+    create a contract from a template (X-API-Key with credits, or x402 pay-per-contract), share it by
+    reader URL, handshake (accept / reject / request changes), sign with an ECDSA wallet signature, read
+    a contract by id / hash / UUID (metadata public, full text with key or share token), a public
+    validity check (is_currently_valid, is_expired, revoked_at), revoke (terminal, cascades to child
+    delegations), issue API keys, register delegations, verify ZK identity, and wallet-auth flows. A
+    public pricing endpoint (/api/v1/pricing) is the canonical price source and /api/health is a public
+    readiness probe. No OpenAPI is published; the reference is https://getamber.dev/docs (endpoint
+    table) and https://getamber.dev/developers (snippets, errors, rate limits).
+  image: https://ambr.run/logo.png
+  humanURL: https://getamber.dev/docs
+  baseURL: https://getamber.dev/api/v1
+  tags:
+  - Contracts
+  - Delegation
+  - Legal
+  - AI Agents
+  - x402
+  properties:
+  - type: Documentation
+    url: https://getamber.dev/docs
+  - type: APIReference
+    url: https://getamber.dev/developers
+  - type: GettingStarted
+    url: https://getamber.dev/docs
+  - type: Authentication
+    url: authentication/getamber-dev-authentication.yml
+  - type: Conventions
+    url: conventions/getamber-dev-conventions.yml
+  - type: ErrorCatalog
+    url: errors/getamber-dev-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/getamber-dev-rate-limits.yml
+  - type: Plans
+    url: plans/getamber-dev-plans-pricing.yml
+  - type: Pricing
+    url: https://getamber.dev/api/v1/pricing
+  - type: Lifecycle
+    url: lifecycle/getamber-dev-lifecycle.yml
+  - type: DataModel
+    url: data-model/getamber-dev-data-model.yml
+  - type: Examples
+    url: examples/getamber-dev-templates-response.json
+  - type: JSONSchema
+    url: json-schema/getamber-dev-d1-general-auth-schema.json
+  - type: JSONSchema
+    url: json-schema/getamber-dev-d2-limited-service-schema.json
+  - type: JSONSchema
+    url: json-schema/getamber-dev-d3-fleet-auth-schema.json
+  - type: JSONSchema
+    url: json-schema/getamber-dev-c1-api-access-schema.json
+  - type: JSONSchema
+    url: json-schema/getamber-dev-c2-compute-sla-schema.json
+  - type: JSONSchema
+    url: json-schema/getamber-dev-c3-task-execution-schema.json
+  - type: JSONSchema
+    url: https://github.com/getambr/ambr/tree/master/open-source/contract-schemas/templates
+- aid: getamber-dev:ambr-mcp-server
+  name: Ambr MCP Server
+  description: >-
+    One remote Model Context Protocol server at https://getamber.dev/api/mcp — Streamable HTTP in
+    stateless JSON mode, protocol version 2025-03-26, serverInfo ambr-mcp-server 1.0.0. Anonymous
+    initialize and tools/list return six tools with real inputSchemas and annotations:
+    ambr_list_templates, ambr_create_contract, ambr_get_contract, ambr_get_contract_status,
+    ambr_verify_hash, ambr_agent_handshake. Read-only tools run without a credential; state-changing
+    tools take an X-API-Key header or answer with an x402 v2 payment challenge. No stdio package exists.
+    A server.json in the official registry schema sits in the getambr/ambr repository; Glama lists the
+    connector as healthy.
+  image: https://ambr.run/logo.png
+  humanURL: https://getamber.dev/docs
+  baseURL: https://getamber.dev/api/mcp
+  tags:
+  - MCP
+  - agent-native
+  - AI Agents
+  properties:
+  - type: MCPServer
+    url: mcp/getamber-dev-mcp.yml
+  - type: MCPServer
+    url: https://getamber.dev/api/mcp
+  - type: Documentation
+    url: https://getamber.dev/docs
+  - type: Authentication
+    url: authentication/getamber-dev-authentication.yml
+- aid: getamber-dev:ambr-a2a-agent
+  name: Ambr A2A Agent
+  description: >-
+    Agent-to-Agent JSON-RPC endpoint at https://getamber.dev/api/a2a implementing message/send,
+    tasks/get and tasks/cancel (tasks are processed synchronously), discovered through an agent card
+    served at /.well-known/agent-card.json and the legacy /.well-known/agent.json on both getamber.dev
+    and ambr.run. The card declares six skills (create_contract, list_templates, get_contract,
+    verify_hash, get_status, agent_handshake), apiKey and x402 security schemes, an MCP additional
+    interface, a live pricing source and compliesWith urn:ambr:ricardian-v1; it is graded flavored
+    against A2A 1.0.0 because it carries no top-level protocolVersion.
+  image: https://ambr.run/logo.png
+  humanURL: https://getamber.dev/docs
+  baseURL: https://getamber.dev/api/a2a
+  tags:
+  - A2A
+  - agent-native
+  - AI Agents
+  properties:
+  - type: AgentCard
+    url: a2a/getamber-dev-a2a.yml
+  - type: AgentCard
+    url: https://getamber.dev/.well-known/agent-card.json
+  - type: Documentation
+    url: https://getamber.dev/docs
+  - type: Authentication
+    url: authentication/getamber-dev-authentication.yml
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
@@ -20,4 +151,100 @@ maintainers:
   email: info@apis.io
 common:
 - type: Website
-  url: https://getamber.dev/
+  url: https://ambr.run/
+- type: DeveloperPortal
+  url: https://getamber.dev/developers
+- type: Documentation
+  url: https://getamber.dev/docs
+- type: APIReference
+  url: https://getamber.dev/developers
+- type: GettingStarted
+  url: https://getamber.dev/docs
+- type: SignUp
+  url: https://getamber.dev/activate
+- type: Login
+  url: https://getamber.dev/dashboard
+- type: Pricing
+  url: https://getamber.dev/activate
+- type: Plans
+  url: plans/getamber-dev-plans-pricing.yml
+- type: TermsOfService
+  url: https://ambr.run/terms
+- type: PrivacyPolicy
+  url: https://ambr.run/privacy
+- type: Support
+  url: https://discord.com/invite/HjvJFfjr
+- type: Community
+  url: https://discord.com/invite/HjvJFfjr
+- type: GitHubOrganization
+  url: https://github.com/getambr
+- type: SourceCode
+  url: https://github.com/getambr/ambr
+- type: Twitter
+  url: https://x.com/ambr_run
+- type: StatusPage
+  url: https://ambr.run/status
+- type: ChangeLog
+  url: changelog/getamber-dev-changelog.yml
+- type: ChangeLog
+  url: https://github.com/getambr/ambr/blob/master/CHANGELOG.md
+- type: Lifecycle
+  url: lifecycle/getamber-dev-lifecycle.yml
+- type: AgentCard
+  url: a2a/getamber-dev-a2a.yml
+- type: MCPServer
+  url: mcp/getamber-dev-mcp.yml
+- type: LLMsTxt
+  url: llms/getamber-dev-llms.txt
+- type: LLMsTxt
+  url: https://ambr.run/llms.txt
+- type: Specification
+  url: https://ambr.run/spec/ricardian-v1
+- type: AgentSkill
+  url: skills/_index.yml
+- type: AgentSkill
+  url: skills/getamber-dev-create-and-activate-mandate.md
+- type: AgentSkill
+  url: skills/getamber-dev-verify-mandate.md
+- type: Authentication
+  url: authentication/getamber-dev-authentication.yml
+- type: Conventions
+  url: conventions/getamber-dev-conventions.yml
+- type: ErrorCatalog
+  url: errors/getamber-dev-problem-types.yml
+- type: RateLimits
+  url: rate-limits/getamber-dev-rate-limits.yml
+- type: Conformance
+  url: conformance/getamber-dev-conformance.yml
+- type: DataModel
+  url: data-model/getamber-dev-data-model.yml
+- type: Security
+  url: security/getamber-dev-vulnerability-disclosure.yml
+- type: SecurityPolicy
+  url: https://github.com/getambr/ambr/blob/master/SECURITY.md
+- type: VulnerabilityDisclosure
+  url: security/getamber-dev-vulnerability-disclosure.yml
+- type: DomainSecurity
+  url: security/getamber-dev-domain-security.yml
+- type: Packages
+  url: packages/getamber-dev-packages.yml
+- type: RegulatoryPosture
+  url: regulatory/getamber-dev-regulatory-posture.yml
+- type: DataSubjectRequest
+  url: https://ambr.run/privacy
+- type: AITransparency
+  url: https://ambr.run/terms
+- type: ExitAssistance
+  url: https://ambr.run/privacy
+x-enrichment:
+  date: '2026-09-19'
+  status: enriched
+  artifacts_added: 32
+  pass: local-v3
+  notes: >-
+    Real provider surface: A2A agent card (probed, graded flavored — no protocolVersion), remote MCP server
+    (anonymous tools/list, 6 tools with inputSchemas), machine-readable pricing endpoint, llms.txt, MIT
+    contract-template JSON Schemas, CHANGELOG.md and SECURITY.md from github.com/getambr/ambr. No OpenAPI,
+    no SDK, no OAuth/OIDC/security.txt/api-catalog on any host. baseURL https://getamber.dev/api/v1 is the
+    documented base ("Base URL: https://getamber.dev/api/v1" on /docs); repair-api-bases flags it
+    nonprod-host only because the .dev TLD matches its dev-substring heuristic — a false positive, left as is.

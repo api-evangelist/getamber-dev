@@ -1,0 +1,27 @@
+generated: '2026-09-19'
+method: searched
+source: registry.npmjs.org, pypi.org, github.com/getambr, https://getamber.dev/docs, https://getamber.dev/developers
+description: >-
+  Ambr ships NO first-party client library. Checked 2026-09-19: npm has no ambr, @ambr/sdk, @ambr/mcp,
+  ambr-sdk, ambr-mcp, getamber or @getamber/sdk (registry.npmjs.org returns no document for each; the npm
+  search for "ambr ricardian" and "getambr" returns only unrelated EOSIO ricardian tooling). PyPI "ambr"
+  (0.5.1) belongs to a11to1n3/AMBER, an agent-based-modelling library — NOT this company; "getamber" and
+  "ambr-sdk" are absent. The GitHub org getambr has one repository (getambr/ambr, TypeScript, pushed
+  2026-09-05) whose open-source/ directory holds MIT-licensed reader-portal React components and the six
+  contract-template JSON Schemas (saved to json-schema/), but nothing is published to a registry. The
+  integration surface is the REST API, the remote MCP endpoint and the A2A endpoint — the docs give raw
+  fetch() and curl examples and an MCP client config, no SDK install. An honest empty list; no SDKs or
+  Packages pointer is emitted.
+packages: []
+registry_probes:
+- {registry: npm, name: ambr, status: absent}
+- {registry: npm, name: '@ambr/sdk', status: absent}
+- {registry: npm, name: '@ambr/mcp', status: absent}
+- {registry: npm, name: ambr-mcp, status: absent}
+- {registry: npm, name: ambr-sdk, status: absent}
+- {registry: npm, name: getamber, status: absent}
+- {registry: npm, name: '@getamber/sdk', status: absent}
+- {registry: pypi, name: ambr, status: present-but-unrelated, note: a11to1n3/AMBER agent-based modelling, version 0.5.1 — not Ambr}
+- {registry: pypi, name: getamber, status: absent}
+- {registry: pypi, name: ambr-sdk, status: absent}
+- {registry: github, name: getambr/ambr, status: present, url: https://github.com/getambr/ambr, note: source repository, not a package; open-source/ subtree MIT, rest proprietary}

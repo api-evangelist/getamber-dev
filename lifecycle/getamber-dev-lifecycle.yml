@@ -1,0 +1,57 @@
+generated: '2026-09-19'
+method: searched
+source: >-
+  https://ambr.run/spec/ricardian-v1 (Versioning section), https://ambr.run/status (public status page),
+  https://getamber.dev/api/health (the health endpoint the status page reads), https://ambr.run/terms
+  (no SLA), https://github.com/getambr/ambr/blob/master/CHANGELOG.md (Keep a Changelog + SemVer).
+versioning:
+  scheme: 'URL path major version for the REST API (/api/v1) + SemVer platform releases + a URN-versioned contract format'
+  mechanism: 'REST: path prefix /api/v1. Contract format: URN urn:ambr:ricardian-v1 declared in the agent card (compliesWith) and MCP/A2A discovery; platformVersion (0.3.4) is surfaced on the agent card and /api/health.'
+  current: 'REST v1; platform 0.3.4 (health endpoint and agent card, 2026-09-19); contract format ricardian-v1'
+  docs: https://ambr.run/spec/ricardian-v1
+  changelog: changelog/getamber-dev-changelog.yml
+  notes: >-
+    The spec page states the policy verbatim: "This is version 1 of the spec. Breaking changes will be
+    published under a new URN (e.g. urn:ambr:ricardian-v2). Non-breaking additions land under the same
+    URN with a bump to platformVersion on the discovery endpoints." Template versions are separately
+    integer-versioned (template_version, "monotonically increasing per template"; all live templates are
+    v1). No date-based API versioning header exists.
+deprecation:
+  policy_url: null
+  sunset_header: false
+  deprecation_header: false
+  notes: >-
+    No deprecation policy, sunset schedule or RFC 8594 Sunset/Deprecation header is published. The only
+    forward-compatibility statement is the URN rule above. No Deprecation pointer is emitted.
+sla:
+  url: https://ambr.run/terms
+  public_uptime_target: null
+  notes: >-
+    No uptime SLA is published. Terms §10: the Service is provided "AS IS" and "AS AVAILABLE"; Terms §6
+    offers prorated refunds for "extended Service outages that materially prevent use of purchased
+    credits" at Ambr's discretion. Enterprise terms are in a signed agreement.
+status_page: https://ambr.run/status
+status_page_notes: >-
+  A first-party public status page (added in 0.3.3, 2026-04-23) that polls https://getamber.dev/api/health
+  every 30 seconds and renders per-service dots for seven dependencies. The health endpoint itself is
+  public JSON: observed 2026-09-19 {"status":"healthy","version":"0.3.4","services":{"supabase":"ok",
+  "base_rpc":"ok","anthropic":"ok","ops_agent":"ok","resend":"ok","stripe":"ok","cnft_contract":"ok"},
+  "cnft":{"address":"0x20cEE8DdeB9b700dA6f9E00cD6A430Fb351DB250"}}. There is no incident history, no
+  subscription and no third-party status host (status.ambr.run and status.getamber.dev do not resolve).
+health_endpoint: https://getamber.dev/api/health
+rate_limits: rate-limits/getamber-dev-rate-limits.yml
+deprecated_products: []
+deprecated_operations: []
+object_lifecycle:
+  note: >-
+    Distinct from API lifecycle — the documented state machine of the Contract object, recorded here
+    because agents must read it before acting (developers page, "Mandate Lifecycle").
+  states: [draft, awaiting_principal_approval, handshake, pending_signature, active, amended, revoked, expired, terminated]
+  terminal: [amended, revoked, terminated]
+  transitions:
+  - 'POST /contracts -> draft'
+  - 'handshake accept -> draft -> pending_signature (request_changes keeps draft)'
+  - 'first ECDSA signature -> pending_signature; second -> active (one-sided P2 template: single signature -> active)'
+  - 'child contract above parent oversight_threshold_usd -> awaiting_principal_approval until a human signs (EU AI Act Art. 14 framing)'
+  - 'POST /contracts/:id/revoke -> revoked (irreversible; cascades to child delegations)'
+  - 'expiry is derived: past expiry_date the status column may still read active, but GET /:id/status returns is_currently_valid false and is_expired true'

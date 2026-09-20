@@ -1,0 +1,103 @@
+generated: '2026-09-19'
+method: searched
+format: custom-json-envelope
+source: >-
+  The "Errors & rate limits" section of https://getamber.dev/developers (the provider's error reference),
+  cross-checked against live anonymous responses observed 2026-09-19 on getamber.dev/api/v1 (401 on
+  /contracts, 400 validation_error on POST /contracts with an empty body, 404 not_found on an unknown
+  contract id, 401 on /delegations) and on the MCP and A2A JSON-RPC surfaces. Ambr publishes no OpenAPI,
+  so there are no 4xx/5xx response schemas to derive from; every row below is either quoted from the
+  developers page or observed on the wire. Ambr does NOT use RFC 9457 application/problem+json.
+docs: https://getamber.dev/developers
+envelope:
+  media_type: application/json
+  rfc9457: false
+  shape: '{ "error": <snake_case code>, "message": <human text>, "details"?: [ { code, path[], message, expected } ] }'
+  notes: >-
+    "error" is a short snake_case code (unauthorized, not_found, validation_error, rate_limited ...).
+    validation_error carries a Zod-style details[] array (observed: {"expected":"string","code":
+    "invalid_type","path":["template"],"message":"Invalid input: expected string, received undefined"}).
+    429 responses add retry_after_ms. Some endpoints return only {"error": <text>} (observed on
+    /api/v1/delegations: {"error":"Invalid or missing API key"}). The docs say "Exact error codes vary
+    slightly per endpoint."
+observed:
+- {url: 'GET https://getamber.dev/api/v1/contracts', status: 401, body: '{"error":"unauthorized","message":"Valid API key required via X-API-Key header, or provide ?wallet= with signature headers"}'}
+- {url: 'POST https://getamber.dev/api/v1/contracts (empty JSON body, no key)', status: 400, body: '{"error":"validation_error","details":[{"expected":"string","code":"invalid_type","path":["template"],...},{"path":["parameters"]...},{"path":["principal_declaration"]...}]}', note: body validation runs before authentication}
+- {url: 'GET https://getamber.dev/api/v1/contracts/amb-2026-0001', status: 404, body: '{"error":"not_found","message":"Contract not found"}'}
+- {url: 'GET https://getamber.dev/api/v1/delegations', status: 401, body: '{"error":"Invalid or missing API key"}'}
+- {url: 'GET https://getamber.dev/api/v1/keys', status: 405, body: '(empty)'}
+problems:
+- status: 400
+  code: bad_request
+  title: Bad Request
+  meaning: malformed JSON body
+- status: 400
+  code: validation_error
+  title: Validation Error
+  meaning: missing or mistyped fields; details[] lists each failing path
+  remediation: Call GET /api/v1/templates for the template's parameter_schema and send every required field.
+- status: 400
+  code: invalid_signature
+  title: Invalid Signature
+  meaning: sign and revoke flows — the ECDSA signature cannot be verified
+- status: 400
+  code: hash_mismatch
+  title: Hash Mismatch
+  meaning: sign and revoke flows — the signed message does not contain the contract's SHA-256 hash
+- status: 400
+  code: message_mismatch
+  title: Message Mismatch
+  meaning: sign and revoke flows — the signed message lacks the required intent text
+- status: 401
+  code: unauthorized
+  title: Unauthorized
+  meaning: missing or invalid credentials (API key)
+  remediation: Send X-API-Key, or for wallet flows provide ?wallet= plus signature headers.
+- status: 401
+  code: signature_mismatch
+  title: Signature Mismatch
+  meaning: signature does not match the wallet
+- status: 402
+  code: payment_required
+  title: Payment Required (x402)
+  meaning: >-
+    paid REST endpoint called without an API key — the response carries x402 payment instructions (price,
+    chain, recipient, accepted tokens); on the MCP surface the same condition is JSON-RPC error -32001
+    "Payment required" with the x402 payload in error.data
+  remediation: Pay on Base L2 and retry with the tx hash in the X-Payment header, or send an API key with credits.
+- status: 403
+  code: unauthorized
+  title: Forbidden
+  meaning: wallet not associated with this contract
+- status: 404
+  code: not_found
+  title: Not Found
+  meaning: unknown contract id or hash
+- status: 405
+  code: null
+  title: Method Not Allowed
+  meaning: observed on GET /api/v1/keys (POST-only route); empty body
+- status: 409
+  code: already_revoked
+  title: Already Revoked
+  meaning: the revoke action was already applied
+- status: 409
+  code: invalid_state
+  title: Invalid State
+  meaning: action conflicts with the contract's current state
+- status: 422
+  code: invalid_status
+  title: Invalid Status
+  meaning: action not allowed in the contract's current status
+- status: 429
+  code: rate_limited
+  title: Rate Limited
+  meaning: too many requests; response includes retry_after_ms
+  remediation: Back off and retry after retry_after_ms milliseconds. Revoke allows 5 requests/minute/IP.
+jsonrpc_errors:
+  note: The MCP (/api/mcp) and A2A (/api/a2a) surfaces return HTTP 200 with JSON-RPC 2.0 error objects; tool-level failures on MCP come back as result.isError true with a text content part.
+  codes:
+  - {code: -32601, surface: [mcp, a2a], meaning: 'Method not found (A2A supports only message/send, tasks/get, tasks/cancel; MCP has no resources/list or prompts/list)'}
+  - {code: -32001, surface: a2a, meaning: 'Task not found — Ambr processes tasks synchronously; results are returned in the message/send response'}
+  - {code: -32001, surface: mcp, meaning: 'Payment required — x402 v2 payload in error.data (version, price, currency, chain, recipient, accepts, accepted_tokens[], pricing{})'}
+  - {code: tool-isError, surface: mcp, meaning: 'e.g. "Error: Contract ''amb-2026-0001'' not found." returned as result.isError=true'}

@@ -1,0 +1,114 @@
+generated: '2026-09-19'
+method: probed            # ONLY ever probed — an agent card is never generated or derived
+source: https://getamber.dev/.well-known/agent-card.json
+card:
+  file: a2a/getamber-dev-agent-card.json
+discovery:
+  path: /.well-known/agent-card.json
+  canonical: true
+  host: getamber.dev
+  note: >-
+    Ambr serves the SAME 6,696-byte card at four URLs: the canonical /.well-known/agent-card.json and the
+    legacy /.well-known/agent.json on both getamber.dev (the platform/API host) and ambr.run (the
+    marketing host; getamber.dev/ itself 307s to ambr.run/). Ownership is not in question: the card's
+    provider.organization is "Ambr" with provider.url https://ambr.run, its url is the A2A endpoint on
+    getamber.dev, Ambr's own llms.txt, README (github.com/getambr/ambr), docs page and MCP server.json all
+    name this exact URL as the agent card, and the A2A endpoint's own GET response lists both well-known
+    paths under agent_card. Harvest provenance: this company entered the catalog from an a2a-registry
+    listing (x-source: harvest:a2a-registry), and the card is the surface that listing pointed at.
+conformance:
+  spec: A2A 1.0.0
+  grade: flavored          # conformant | near-conformant | flavored
+  protocol_version: null   # no top-level protocolVersion — see deviations
+  preferred_transport: null
+  deviations:
+  - no-protocolVersion       # hard check: the card carries version, apiVersion, platformVersion and
+                             # supported_interfaces[].protocol_version "1.0.0", but no top-level protocolVersion
+  - no-preferredTransport
+  - supported_interfaces-snake-case   # snake_case alias of supportedInterfaces alongside camelCase additionalInterfaces
+  - duplicate-snake-case-keys         # security_schemes / default_input_modes / default_output_modes duplicate the camelCase keys
+  - additionalInterfaces-kinds-non-a2a  # additionalInterfaces lists an MCP endpoint and a health endpoint, not alternate A2A transports
+  passed:
+  - capabilities is an object ({streaming, pushNotifications, stateTransitionHistory, extendedAgentCard})
+  - skills is an array (6 skills, each with id/name/description/tags/inputModes/outputModes/examples)
+  - securitySchemes present (apiKey X-API-Key, x402 http scheme) and security[] applied
+  - defaultInputModes / defaultOutputModes present (application/json)
+  - name, description, url, version, documentationUrl, provider present
+  note: >-
+    Graded flavored on the single hard failure (no protocolVersion). Everything else the 1.0.0 shape asks
+    for is present, so this is a near-miss rather than a loose JSON blob; the fix is one field. The card
+    also carries non-standard but useful extensions: pricing.source (a live pricing endpoint), compliesWith
+    ["urn:ambr:ricardian-v1"], implementsSpec, extensions["io.ambr.governance"], and live stats
+    (total_contracts_served 31, active_contracts 18 at fetch time).
+endpoint:
+  url: https://getamber.dev/api/a2a
+  binding: jsonrpc/http
+  probe:
+    fetched: '2026-09-19'
+    get:
+      http_status: 200
+      content_type: application/json
+      body: '{"name":"Ambr A2A Server","version":"1.0.0","protocol":"A2A","methods":["message/send","tasks/get","tasks/cancel"],"agent_card":["/.well-known/agent.json","/.well-known/agent-card.json"]}'
+    unknown_method:
+      request: agent/getAuthenticatedExtendedCard
+      http_status: 200
+      jsonrpc_error: '-32601 Method not found ... Supported: message/send, tasks/get, tasks/cancel'
+    tasks_get:
+      request: 'tasks/get {id: nonexistent}'
+      http_status: 200
+      jsonrpc_error: '-32001 Task not found. Ambr processes tasks synchronously — results are returned in the message/send response.'
+    message_send_anonymous:
+      request: message/send with a free-text part ("What contract templates are available?")
+      http_status: 200
+      result: 'task.status.state = input_required; agent asks the caller to name a skill (create_contract, list_templates, get_contract, verify_hash, get_status)'
+      note: The A2A endpoint answers anonymously; it routes on skill id rather than free text. No credential was used and nothing was created.
+  supported_methods: [message/send, tasks/get, tasks/cancel]
+  streaming: false
+  push_notifications: false
+  auth: [apiKey X-API-Key, x402 X-Payment]
+x-evidence:
+  fetched: '2026-09-19'
+  url: https://getamber.dev/.well-known/agent-card.json
+  http_status: 200
+  content_type: application/json
+  body_bytes: 6696
+  body_parses_as: JSON object with AgentCard shape (name, url, version, capabilities{}, skills[], securitySchemes)
+  server: Vercel
+  cors: 'access-control-allow-origin: *'
+  corroborating_probes:
+  - url: https://getamber.dev/.well-known/agent.json
+    http_status: 200
+    note: identical body (legacy path)
+  - url: https://ambr.run/.well-known/agent-card.json
+    http_status: 200
+    note: identical body
+  - url: https://ambr.run/.well-known/agent.json
+    http_status: 200
+    note: identical body
+  - url: https://getamber.dev/api/a2a
+    http_status: 200
+    note: GET returns the server self-description quoted above; POST answers JSON-RPC 2.0
+  - url: https://getamber.dev/.well-known/getamber-dev-negative-control-7f3ab91c.json
+    http_status: 404
+    note: negative control — the host is not a path-echoing catch-all
+agent_card:
+  name: Ambr
+  description: The liability record for autonomous agents. Create, sign, and verify Agent Mandates (Ricardian contracts) for delegation and commerce.
+  url: https://getamber.dev/api/a2a
+  version: 1.0.0
+  api_version: 1.0.0
+  platform_version: 0.3.4
+  released_at: '2026-04-20T00:00:00Z'
+  documentation_url: https://ambr.run/llms.txt
+  provider: {organization: Ambr, url: https://ambr.run}
+  additional_interfaces:
+  - {url: https://getamber.dev/api/mcp, kind: mcp, protocol_version: '2025-03-26'}
+  - {url: https://getamber.dev/api/health, kind: health}
+  pricing_source: https://getamber.dev/api/v1/pricing
+  complies_with: ['urn:ambr:ricardian-v1']
+  implements_spec: https://ambr.run/spec/ricardian-v1
+  skills: 6
+  skill_ids: [create_contract, list_templates, get_contract, verify_hash, get_status, agent_handshake]
+  security_schemes:
+    apiKey: {type: apiKey, in: header, name: X-API-Key}
+    x402: {type: http, scheme: x402, description: Pay-per-contract via USDC on Base L2; tx hash in X-Payment header}

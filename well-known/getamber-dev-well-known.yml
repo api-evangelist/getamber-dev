@@ -1,0 +1,75 @@
+generated: '2026-09-19'
+method: probed
+source: direct unauthenticated HTTPS probes of every host the record knows (getamber.dev — API, MCP, A2A and docs host; ambr.run — website; www. variants)
+name: Ambr .well-known Probe
+description: >-
+  No document from the closed well-known list is served on any Ambr host. Both getamber.dev and ambr.run
+  answer every listed path with a hard 404 (18,119-byte Next.js not-found page, text/html); the negative
+  control path also 404s, so neither host is a path-echoing catch-all. www.getamber.dev 307s and
+  www.ambr.run 308s to ambr.run/. The ONE /.well-known/ document Ambr does serve is its A2A agent card, at
+  both /.well-known/agent-card.json and /.well-known/agent.json on both hosts — that is indexed and graded
+  in a2a/getamber-dev-a2a.yml, not here, because it is not an API catalog, security.txt or OAuth discovery
+  document. hit_count is therefore 0 and NO WellKnown or SecurityTxt pointer is emitted: the MCP server
+  runs on getamber.dev itself (no separate mcp. host), and RFC 9728 protected-resource metadata is absent
+  there too.
+hit_count: 0
+path_echo_control: passed
+negative_control:
+- url: https://getamber.dev/.well-known/getamber-dev-negative-control-7f3ab91c.json
+  status: 404
+- url: https://ambr.run/.well-known/getamber-dev-negative-control-7f3ab91c.json
+  status: 404
+related_documents:
+- path: /.well-known/agent-card.json
+  status: 200
+  file: a2a/getamber-dev-agent-card.json
+  indexed_in: a2a/getamber-dev-a2a.yml
+hosts:
+- host: https://getamber.dev
+  role: API host (REST /api/v1, MCP /api/mcp, A2A /api/a2a), docs host
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/oauth-protected-resource, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/api-catalog.json, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+  - {path: /.well-known/ucp.json, status: 404}
+  - {path: /.well-known/acp.json, status: 404}
+  - {path: /.well-known/aauth-resource.json, status: 404}
+  - {path: /.well-known/apis.json, status: 404}
+  - {path: /apis.json, status: 404}
+  - {path: /apis.yml, status: 404}
+  - {path: /.well-known/mcp.json, status: 404}
+- host: https://ambr.run
+  role: website / marketing host (getamber.dev/ redirects here)
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/oauth-protected-resource, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/api-catalog.json, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+  - {path: /.well-known/ucp.json, status: 404}
+  - {path: /.well-known/acp.json, status: 404}
+  - {path: /.well-known/aauth-resource.json, status: 404}
+  - {path: /.well-known/apis.json, status: 404}
+  - {path: /apis.json, status: 404}
+  - {path: /apis.yml, status: 404}
+  - {path: /.well-known/mcp.json, status: 404}
+- host: https://www.getamber.dev
+  note: 307 redirect to https://ambr.run/ — not probed separately
+  documents: []
+- host: https://www.ambr.run
+  note: 308 redirect to https://ambr.run/ — not probed separately
+  documents: []
+other_probes:
+- {url: https://api.getamber.dev/, status: 0, note: no such host}
+- {url: https://mcp.getamber.dev/, status: 0, note: no such host — the MCP server lives at getamber.dev/api/mcp}
+- {url: https://docs.getamber.dev/, status: 0, note: no such host — docs are at getamber.dev/docs}
+- {url: https://api.ambr.run/, status: 0, note: no such host}
+- {url: https://mcp.ambr.run/, status: 0, note: no such host}
+- {url: https://ambr.run/robots.txt, status: 200, note: allows all crawlers including named AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, Applebot-Extended, cohere-ai) except /m/ (an unlisted investor deck); Sitemap https://ambr.run/sitemap.xml}
+- {url: https://ambr.run/llms.txt, status: 200, note: saved to llms/getamber-dev-llms.txt}

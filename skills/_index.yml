@@ -1,0 +1,20 @@
+generated: '2026-09-19'
+method: generated
+source: >-
+  Packaged Agent Skills for Ambr, grounded in the six MCP tools returned by the live tools/list at
+  https://getamber.dev/api/mcp (names, inputSchemas and annotations saved verbatim in
+  mcp/getamber-dev-mcp-tools.json) and the documented REST paths on https://getamber.dev/docs and
+  https://getamber.dev/developers. Ambr publishes no OpenAPI, so there are no operationIds; every step
+  names the MCP tool and its documented REST equivalent instead, and no tool or path that is not in
+  those two sources is used. Cross-cutting rules cite ../conventions/, ../errors/, ../authentication/ and
+  ../plans/. Searched first for provider-published skills / AGENTS.md (getamber.dev/agents.md,
+  /AGENTS.md 404; none in the getambr/ambr repository) — none exist.
+skills:
+- file: getamber-dev-create-and-activate-mandate.md
+  name: Create and activate an Agent Mandate
+  api: mcp/getamber-dev-mcp.yml
+  operations: [ambr_list_templates, ambr_create_contract, ambr_agent_handshake, 'POST /api/v1/contracts/{id}/sign', ambr_get_contract_status]
+- file: getamber-dev-verify-mandate.md
+  name: Verify a mandate before relying on it
+  api: mcp/getamber-dev-mcp.yml
+  operations: [ambr_verify_hash, ambr_get_contract, ambr_get_contract_status, 'GET /api/v1/contracts/{id}/status']

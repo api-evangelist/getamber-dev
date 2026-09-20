@@ -1,0 +1,125 @@
+generated: '2026-09-19'
+method: probed
+status: published
+source: https://getamber.dev/api/mcp
+docs: https://getamber.dev/docs
+registry_manifest: mcp/getamber-dev-server.json
+summary: >-
+  Ambr operates ONE remote MCP server at https://getamber.dev/api/mcp — the same host that serves its REST
+  API (/api/v1), its A2A endpoint (/api/a2a) and its agent card. It is Streamable HTTP in stateless JSON
+  mode (the docs' words), speaks MCP protocol version 2025-03-26, identifies itself as serverInfo
+  {name: ambr-mcp-server, version: 1.0.0}, and answers initialize and tools/list anonymously with six tools
+  that carry real inputSchemas and MCP annotations (readOnlyHint / destructiveHint / idempotentHint /
+  openWorldHint). resources/list and prompts/list return -32601 Method not found. A GET on the endpoint
+  returns 200 application/json. Authorship is knowable from the anonymous tools/list: every tool is
+  ambr_-prefixed and describes Ricardian contract operations; Ambr's own docs, developers page, agent card
+  (additionalInterfaces kind: mcp) and the server.json in github.com/getambr/ambr all name this URL.
+deployment:
+  mode: remote
+  endpoint: https://getamber.dev/api/mcp
+  auth: api-key
+  verified: probed
+  note: >-
+    A hosted HTTPS endpoint an MCP client POSTs to directly; Ambr ships no stdio package (no npm/PyPI
+    package exists — see packages/getamber-dev-packages.yml) and documents no npx/uvx install. The
+    provider's own client config is {"mcpServers":{"ambr":{"url":"https://getamber.dev/api/mcp","headers":
+    {"X-API-Key":"YOUR_API_KEY"}}}}. auth is api-key in the connection sense the docs describe — "Tools that
+    modify state (create contract, agent handshake) require a valid key. Read-only tools (list templates,
+    verify hash) work without authentication." Anonymous initialize and tools/list both succeed. Paid
+    tool calls without a key receive an x402 payment challenge instead of an auth error (observed: JSON-RPC
+    error -32001 "Payment required" carrying an x402 version "2" payload — price, chain base, recipient,
+    accepted_tokens, per-template pricing). No OAuth metadata is served on this host
+    (/.well-known/oauth-authorization-server and /.well-known/oauth-protected-resource both 404).
+  registry_listings:
+  - registry: Glama
+    url: https://glama.ai/mcp/connectors/io.github.getambr/ambr-mcp-server
+    status: 'Healthy, last tested 2026-09-20; transport Streamable HTTP; 6 tools'
+  - registry: registry.modelcontextprotocol.io
+    url: https://registry.modelcontextprotocol.io/v0/servers?search=ambr
+    status: 'not listed at fetch time (search returned unrelated servers); the repo carries a server.json in the official 2025-12-11 schema naming io.github.getambr/ambr-mcp-server, but it has not been published there'
+servers:
+- id: ambr
+  name: ambr-mcp-server
+  endpoint: https://getamber.dev/api/mcp
+  transport: streamable-http
+  http_methods: [POST, GET]
+  auth: X-API-Key header (optional for read-only tools; required or x402 payment for state-changing tools)
+  payment: x402 v2 (USDC, USDbC, DAI, ETH, WETH, cbETH, cbBTC on Base) per paid tool call; JSON-RPC -32001 challenge then retry with X-Payment tx hash
+  status: live
+  probe:
+    fetched: '2026-09-19'
+    initialize:
+      http_status: 200
+      protocol_version: '2025-03-26'
+      server_info: {name: ambr-mcp-server, version: '1.0.0'}
+      capabilities: {tools: {listChanged: false}}
+    tools_list:
+      http_status: 200
+      content_type: application/json
+      tool_count: 6
+      file: mcp/getamber-dev-mcp-tools.json
+      extras: 'result carries ttlMs 3600000 and cacheScope public'
+    resources_list: {http_status: 200, error: '-32601 Method not found: resources/list'}
+    prompts_list: {http_status: 200, error: '-32601 Method not found: prompts/list'}
+    get_request: {http_status: 200, content_type: application/json}
+    tools_call_read_only:
+      tool: ambr_get_contract
+      arguments: {id: amb-2026-0001}
+      http_status: 200
+      result: 'isError true, content "Error: Contract ''amb-2026-0001'' not found." — anonymous read-only calls execute'
+    tools_call_paid_anonymous:
+      tool: ambr_create_contract
+      http_status: 200
+      result: 'JSON-RPC error -32001 Payment required with x402 v2 payload (price 500000 = $0.50 for d1-general-auth, chain base, accepted_tokens[7], pricing map for 11 templates). Nothing was created.'
+  authorship: provider
+  tools:
+  - name: ambr_list_templates
+    read_only: true
+    idempotent: true
+    auth: none
+    rest_equivalent: GET https://getamber.dev/api/v1/templates
+    input_schema: '{} (no arguments)'
+    description: List available contract templates with slugs, names, categories, parameter schemas, pricing and version.
+  - name: ambr_create_contract
+    read_only: false
+    idempotent: false
+    auth: X-API-Key with credits, or x402 payment
+    rest_equivalent: POST https://getamber.dev/api/v1/contracts
+    input_schema: 'template (string, required), parameters (object, required), principal_declaration {agent_id, principal_name, principal_type enum [company, individual]} (required), parent_contract_hash, oversight_threshold_usd (number), amendment_type enum [original, amendment, extension]'
+    description: Generate a dual-format Ricardian Contract from a template; returns contract_id, sha256_hash, status, reader_url, credits_remaining. Costs 1 credit.
+  - name: ambr_get_contract
+    read_only: true
+    idempotent: true
+    auth: none for metadata; X-API-Key (creator) for full text
+    rest_equivalent: GET https://getamber.dev/api/v1/contracts/{id}
+    input_schema: 'id (string, required) — contract ID amb-YYYY-NNNN, SHA-256 hash, or UUID'
+    description: Retrieve a contract by ID, hash or UUID; metadata only without authentication.
+  - name: ambr_get_contract_status
+    read_only: true
+    idempotent: true
+    auth: none
+    rest_equivalent: GET https://getamber.dev/api/v1/contracts/{id}/status
+    input_schema: 'id (string, required)'
+    description: Contract status and amendment chain (parent/child contracts).
+  - name: ambr_verify_hash
+    read_only: true
+    idempotent: true
+    auth: none
+    rest_equivalent: 'none documented as a distinct REST path — verification is GET /v1/contracts/{id} by hash plus a local recompute per https://ambr.run/spec/ricardian-v1'
+    input_schema: 'hash (string, required) — 64-char hex SHA-256'
+    description: Verify that a SHA-256 hash matches a stored contract; returns verified, contract_id, status, reader_url.
+  - name: ambr_agent_handshake
+    read_only: false
+    idempotent: true
+    auth: X-API-Key with an active delegation (principal wallet registered via /api/v1/delegations)
+    rest_equivalent: POST https://getamber.dev/api/v1/contracts/{id}/handshake
+    input_schema: 'contract_id (string, required), intent enum [accept, reject, request_changes] (required), message, visibility_preference enum [private, metadata_only, public, encrypted]'
+    description: Record the agent's intent on a contract on behalf of its delegating principal; the principal approves separately by wallet signature.
+tool_crosswalk:
+  emitted: false
+  reason: >-
+    A ToolCrosswalk binds MCP tools to OpenAPI operationIds, and Ambr publishes no OpenAPI (probed at
+    getamber.dev and ambr.run: /openapi.json, /openapi.yaml, /swagger.json, /api/openapi.json,
+    /api/v1/openapi.json, /api-docs, /redoc all 404; the getambr/ambr repository tree carries none). The
+    rest_equivalent field on each tool above records the documented REST path instead, from the API
+    Reference table at https://getamber.dev/docs.

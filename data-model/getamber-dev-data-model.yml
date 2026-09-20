@@ -1,0 +1,50 @@
+generated: '2026-09-19'
+method: derived
+source: >-
+  Derived from the provider's own published descriptions of its objects: the Ricardian Contract Spec v1
+  required/optional JSON fields (https://ambr.run/spec/ricardian-v1), the live template catalogue
+  (examples/getamber-dev-templates-response.json and json-schema/*), the documented endpoints and response
+  fields on https://getamber.dev/docs and https://getamber.dev/developers, the MCP tool inputSchemas, and
+  the privacy policy's inventory of stored records (https://ambr.run/privacy §1). Ambr publishes no
+  OpenAPI, so there are no component schemas to walk; relationships are the ones the docs state.
+docs: https://ambr.run/spec/ricardian-v1
+notation: relationships use has_one / has_many / belongs_to with the referencing field name; direction is from the entity that owns the reference.
+
+entities:
+- {name: Contract, id_format: 'amb-YYYY-NNNN (also addressable by sha256 hash or UUID)', domain: core, description: 'An Agent Mandate — a dual-format Ricardian contract: human_readable prose + machine_readable JSON bound by one SHA-256 hash. Fields per spec: contract_id, template, template_version, principal_declaration, parameters, sha256, created_at, parent_contract_hash?, amendment_type?; runtime fields: status, reader_url, sign_url, handshake_url, amendment_chain[], revoked_at, revoked_by, expiry_date, is_currently_valid, is_expired.'}
+- {name: Template, id_format: 'slug e.g. d1-general-auth', domain: catalog, description: 'A contract template with name, description, category (delegation | commerce | consumer), parameter_schema (JSON Schema), price_cents, version. 10 live: a1, a2, a3, p2, d1, d2, d3, c1, c2, c3.'}
+- {name: PrincipalDeclaration, domain: core, description: 'Embedded object {agent_id, principal_name, principal_type (company | individual)} linking the acting agent to the legal person it acts for.'}
+- {name: Handshake, domain: lifecycle, description: 'A counterparty or delegated agent''s response on a draft: action/intent (accept | reject | request_changes), visibility (private | metadata_only | public | encrypted), message, wallet_address; agent handshakes additionally record delegation scope and await principal approval.'}
+- {name: Signature, domain: lifecycle, description: 'An ECDSA wallet signature over a message that names the contract and its hash (wallet_address, signature, message). Two activate a bilateral contract; one activates a P2 power of attorney.'}
+- {name: Amendment, domain: lifecycle, description: 'A successor contract proposed against a parent (parent_contract_hash, amendment_type original | amendment | extension), approved or rejected bilaterally; forms the amendment_chain [{hash, parent_hash, type}].'}
+- {name: ContractNFT, id_format: 'ERC-721 token on Base (contract 0x20cEE8DdeB9b700dA6f9E00cD6A430Fb351DB250)', domain: on-chain, description: 'The cNFT minted on activation storing the SHA-256 hash on-chain; paired (one per party) since 0.2.0; transfers are counterparty-gated.'}
+- {name: ShareToken, domain: access, description: 'A time-limited token (default 7 days, max 1 year) embedded in reader_url granting read access to one contract without an API key.'}
+- {name: ApiKey, id_format: 'amb_… (stored as SHA-256 hash)', domain: access, description: 'A credit-bearing key issued to a verified email (tier developer | starter/startup | scale | enterprise; credits, subscription plan).'}
+- {name: Delegation, domain: access, description: 'A registration (via /api/v1/delegations) binding an API key to a principal wallet so an agent may perform handshakes on the principal''s behalf.'}
+- {name: Wallet, id_format: '0x… EVM address', domain: identity, description: 'The identity primitive — "Wallet-as-identity. No profiles, no onboarding forms." Agents and principals are wallet addresses; ZK identity attestations can be attached (POST /v1/identity/verify).'}
+- {name: PricingTier, domain: commerce, description: 'consumer | delegation | commerce | fleet — the per-contract price band a template belongs to (GET /api/v1/pricing).'}
+
+relationships:
+- {from: Contract, to: Template, kind: belongs_to, via: template}
+- {from: Contract, to: PrincipalDeclaration, kind: has_one, via: principal_declaration}
+- {from: Contract, to: Handshake, kind: has_many, via: contract_id}
+- {from: Contract, to: Signature, kind: has_many, via: contract_id}
+- {from: Contract, to: Contract, kind: belongs_to, via: parent_contract_hash, note: amendment / extension / delegation-chain parent}
+- {from: Contract, to: Amendment, kind: has_many, via: amendment_chain}
+- {from: Contract, to: ContractNFT, kind: has_many, via: sha256_hash, note: paired cNFTs, one per party, after activation}
+- {from: Contract, to: ShareToken, kind: has_many, via: reader_url token}
+- {from: Contract, to: ApiKey, kind: belongs_to, via: creator key (X-API-Key), note: creator sees full text}
+- {from: Template, to: PricingTier, kind: belongs_to, via: category}
+- {from: ApiKey, to: Wallet, kind: belongs_to, via: wallet_address, note: keys are mapped to a wallet on paid tiers}
+- {from: Delegation, to: ApiKey, kind: belongs_to, via: api key}
+- {from: Delegation, to: Wallet, kind: belongs_to, via: principal wallet}
+- {from: Handshake, to: Wallet, kind: belongs_to, via: wallet_address}
+- {from: Signature, to: Wallet, kind: belongs_to, via: wallet_address}
+- {from: ContractNFT, to: Wallet, kind: belongs_to, via: owner, note: transfer requires both parties' approval}
+- {from: PrincipalDeclaration, to: Wallet, kind: belongs_to, via: agent_id, note: agent_id is a wallet address or platform identifier}
+
+state_machine:
+  entity: Contract
+  states: [draft, awaiting_principal_approval, handshake, pending_signature, active, amended, revoked, expired, terminated]
+  terminal: [amended, revoked, terminated]
+  detail: lifecycle/getamber-dev-lifecycle.yml

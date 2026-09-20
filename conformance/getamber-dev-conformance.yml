@@ -1,0 +1,106 @@
+generated: '2026-09-19'
+method: searched
+source: >-
+  Live probes of getamber.dev (MCP initialize/tools/list, A2A GET + JSON-RPC, /api/v1/*, /.well-known/*),
+  the agent card, https://ambr.run/spec/ricardian-v1, https://getamber.dev/docs, https://ambr.run/robots.txt,
+  https://ambr.run/llms.txt, the getambr/ambr README and contract-schema JSON files, and
+  https://basescan.org/address/0x20cEE8DdeB9b700dA6f9E00cD6A430Fb351DB250 as named by /api/health.
+  Each entry cites what was observed; nothing is asserted from marketing copy alone.
+standards:
+- id: mcp
+  conforms: true
+  version: '2025-03-26'
+  evidence: >-
+    POST https://getamber.dev/api/mcp initialize returned protocolVersion 2025-03-26, serverInfo
+    ambr-mcp-server 1.0.0, capabilities.tools; tools/list returned 6 tools with JSON-Schema inputSchema
+    and MCP annotations. Streamable HTTP, stateless JSON mode. resources/list and prompts/list are not
+    implemented (-32601). See mcp/getamber-dev-mcp.yml.
+- id: a2a
+  conforms: partial
+  version: 'card graded flavored against A2A 1.0.0; endpoint implements message/send, tasks/get, tasks/cancel'
+  evidence: >-
+    /.well-known/agent-card.json served (200, JSON object, capabilities object, skills array) but with no
+    top-level protocolVersion — grade flavored, see a2a/getamber-dev-a2a.yml. The JSON-RPC endpoint at
+    /api/a2a answers message/send anonymously and returns A2A task objects (state input_required).
+- id: json-rpc-2.0
+  conforms: true
+  evidence: Both /api/mcp and /api/a2a return {"jsonrpc":"2.0", id, result|error{code,message,data}} with standard -32601 and application -32001 codes.
+- id: x402
+  conforms: true
+  version: '2'
+  evidence: >-
+    Anonymous ambr_create_contract returned an x402 challenge with "version":"2", price, currency, chain
+    base, recipient, accepts [exact, overpay] and an accepted_tokens[] list; docs describe HTTP 402 on the
+    REST path and retry with X-Payment tx hash. The developers page lists "x402 V2 — Live".
+- id: erc-721
+  conforms: true
+  evidence: >-
+    Each fully signed contract is minted as an ERC-721 token ("cNFT") by AmbrContractNFT.sol on Base
+    mainnet (chain 8453) at 0x20cEE8DdeB9b700dA6f9E00cD6A430Fb351DB250 — the address is returned by
+    /api/health and recorded in the repo's contracts/deployments/base.json. Transfers are
+    counterparty-gated (both parties must approve).
+- id: json-schema
+  conforms: true
+  evidence: >-
+    Every template's parameter_schema (GET /api/v1/templates and the MIT open-source/contract-schemas
+    files saved to json-schema/) is a JSON Schema object with type, required[], properties{}, enum and
+    default keywords. No $schema draft is declared.
+- id: llms-txt
+  conforms: true
+  evidence: https://ambr.run/llms.txt and https://getamber.dev/llms.txt serve a 3,910-byte llms.txt (H1, blockquote summary, H2 sections with link lists). Saved to llms/getamber-dev-llms.txt.
+- id: robots-ai-crawler-policy
+  conforms: true
+  evidence: https://ambr.run/robots.txt explicitly allows GPTBot, ChatGPT-User, ClaudeBot, Google-Extended, PerplexityBot, Applebot-Extended and cohere-ai ("For a product whose buyers are agents, being readable by agents is the point"), disallowing only /m/.
+- id: keep-a-changelog
+  conforms: true
+  evidence: CHANGELOG.md in github.com/getambr/ambr states it "follows Keep a Changelog 1.1.0 and SemVer"; entries are dated with Added/Changed/Fixed headings.
+- id: gdpr-lawful-basis-and-rights
+  conforms: true
+  evidence: https://ambr.run/privacy §2 names Art. 6(1)(b)/(f)/(a) bases; §6 enumerates access, rectification, erasure, portability and objection with a 30-day response commitment and contact privacy@ambr.run. A published statement, not a certification.
+- id: oauth2
+  conforms: false
+  evidence: No OAuth flow documented; /.well-known/oauth-authorization-server and /oauth-protected-resource 404 on both hosts. Auth is X-API-Key, x402 payment or wallet signature.
+- id: oidc
+  conforms: false
+  evidence: /.well-known/openid-configuration 404 on getamber.dev and ambr.run.
+- id: rfc9457
+  conforms: false
+  evidence: Errors are a custom {error, message, details[]} JSON envelope, never application/problem+json (see errors/getamber-dev-problem-types.yml).
+- id: rfc9116-security-txt
+  conforms: false
+  evidence: /.well-known/security.txt 404 on both hosts; the disclosure policy lives in the repo's SECURITY.md instead.
+- id: rfc9727-api-catalog
+  conforms: false
+  evidence: /.well-known/api-catalog 404 on both hosts.
+- id: rfc9728-protected-resource-metadata
+  conforms: false
+  evidence: /.well-known/oauth-protected-resource 404 on getamber.dev, the MCP resource host.
+- id: openapi
+  conforms: false
+  evidence: No OpenAPI/Swagger document at any conventional path on getamber.dev or ambr.run, and none in the getambr/ambr repository. The REST reference is an HTML table on /docs and fetch() snippets on /developers.
+- id: idempotency-key
+  conforms: false
+  evidence: No Idempotency-Key header or replay-safe write mechanism is documented; MCP tool annotations mark handshake idempotentHint true and create_contract false, which is a hint, not a header contract.
+- id: pagination
+  conforms: false
+  evidence: No pagination parameters are documented; GET /api/v1/templates returns the full list (10 templates) in one response.
+domain_standard:
+  note: >-
+    Ambr's market — machine-readable agreements between AI agents — has no established standards body
+    standard; the closest artefacts are the MCP/A2A discovery protocols above (recorded), x402 (recorded)
+    and the token standard for the on-chain anchor (ERC-721, recorded). Ambr publishes its OWN format
+    specification, urn:ambr:ricardian-v1 (https://ambr.run/spec/ricardian-v1, MIT), and declares it in the
+    agent card's compliesWith[] and implementsSpec — a self-authored spec, recorded here as a declared
+    format, NOT credited as industry-standard conformance. REWARD-ONLY rule: no conformance is invented.
+  declared:
+  - id: urn:ambr:ricardian-v1
+    kind: self-published contract-format specification
+    location: agent card compliesWith[] and implementsSpec; MCP server.json _meta.io.ambr.urn; spec page
+    hash_scheme: 'sha256_hex(utf8(prose + "\n---\n" + canonical_json)) with lexicographically sorted keys at every depth'
+    jsonld_context: '{"@context":{"ambr":"https://ambr.run/context/ricardian#","urn":"urn:ambr:ricardian-v1"}}'
+legal_frameworks_referenced:
+  note: >-
+    Templates are "structured with reference to" these instruments (templates page, schema README, terms
+    §3). Ambr's own terms say the references do "not constitute legal certification", so they are listed
+    as references, not conformance claims.
+  list: ['UETA s. 14 (US)', 'E-SIGN (US)', 'eIDAS Art. 25 / Art. 26 (EU)', 'GDPR Art. 5 / Art. 6 (EU)', 'EU AI Act Art. 14 (oversight_threshold_usd)', 'EU Consumer Rights Directive (A2C templates)', 'UK Electronic Communications Act 2000', 'Singapore Electronic Transactions Act', 'IETF Agentic Dispute Protocol (ADP) clauses']

@@ -1,0 +1,125 @@
+specification: API Commons Plans
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/Plans
+provider: Ambr
+providerId: getamber-dev
+generated: '2026-09-19'
+method: probed
+created: '2026-09-19'
+modified: '2026-09-19'
+source: https://getamber.dev/api/v1/pricing
+sources:
+- https://getamber.dev/api/v1/pricing
+- https://getamber.dev/docs
+- https://getamber.dev/activate
+- https://ambr.run/founders
+- https://ambr.run/terms
+raw: plans/getamber-dev-pricing.json
+plan_count: 10
+description: >-
+  Ambr publishes its price list as a MACHINE-READABLE endpoint — GET https://getamber.dev/api/v1/pricing,
+  anonymous, application/json, CORS * — and its agent card, llms.txt and MCP server.json all point agents
+  at it as the canonical price source ("Do not hardcode prices"). The raw response fetched 2026-09-19 is
+  saved verbatim at plans/getamber-dev-pricing.json. Pricing is per contract ("mandate") in USD, in four
+  tiers keyed to template category, with three ways to pay: (a) credits on an API key — free Developer
+  credits, one-time credit packs, or a monthly subscription, all via getamber.dev/activate (Stripe card
+  checkout or USDC on Base); (b) x402 pay-per-contract at call time (USDC and six other tokens on Base
+  L2, HTTP 402 challenge then retry with X-Payment tx hash); (c) an Enterprise tier priced on request.
+  Handshake, sign, verify and Reader access are free; cNFT minting gas is absorbed. A ten-slot Founding
+  Partner programme offers 1,000 free contracts and a permanent 50% per-contract discount (0/10 claimed
+  at fetch time). Terms §6: credit packs are one-time and non-refundable once the key is shown except
+  within 14 days with no contracts created; on-chain and x402 settlements are final.
+currency: USD
+unit: per contract
+plans:
+- id: developer-free
+  name: Developer (free tier)
+  type: free
+  price: $0
+  billing: none
+  included: 25 credits per verified-email key, once — no renewal
+  requires: [verified_email]
+  description: '"Free forever for developers — create and test contracts." One credit = one contract at the consumer/delegation rate; see per-contract tiers for credit costs by template (templates page shows P2 0.2 credits, D1 0.5 credits, A2A 1 credit).'
+  source: https://getamber.dev/api/v1/pricing#free_tier
+- id: per-contract-consumer
+  name: Personal / consumer tier (per contract)
+  type: usage-based
+  price: $0.20
+  billing: per contract
+  templates: [a1-service-purchase, a3-warranty-liability, a2-ai-subscription, p2-power-of-attorney]
+  source: https://getamber.dev/api/v1/pricing#tiers
+- id: per-contract-delegation
+  name: Delegation tier (per contract)
+  type: usage-based
+  price: $0.50
+  billing: per contract
+  templates: [d1-general-auth, d2-limited-service]
+  source: https://getamber.dev/api/v1/pricing#tiers
+- id: per-contract-commerce
+  name: Agent-to-Agent / commerce tier (per contract)
+  type: usage-based
+  price: $1.00
+  billing: per contract
+  templates: [c1-api-access, c2-compute-sla, c3-task-execution]
+  source: https://getamber.dev/api/v1/pricing#tiers
+- id: per-contract-fleet
+  name: Fleet Multi-Agent tier (per contract)
+  type: usage-based
+  price: $2.50
+  billing: per contract
+  templates: [d3-fleet-auth]
+  source: https://getamber.dev/api/v1/pricing#tiers
+- id: pack-starter
+  name: Starter Pack
+  type: prepaid
+  price: $49
+  billing: one-time
+  included: 200 credits
+  source: https://getamber.dev/api/v1/pricing#packs
+- id: pack-scale
+  name: Scale Pack
+  type: prepaid
+  price: $199
+  billing: one-time
+  included: 1,000 credits
+  source: https://getamber.dev/api/v1/pricing#packs
+- id: subscription-personal
+  name: Personal
+  type: subscription
+  price: $9
+  billing: monthly
+  included: 25 contracts per month; unlimited AI messages (ai_messages_limit -1)
+  overage: $0.20 per contract
+  purchase_at: https://getamber.dev/activate
+  source: https://getamber.dev/api/v1/pricing#subscriptions
+- id: subscription-business
+  name: Business
+  type: subscription
+  price: $29
+  billing: monthly
+  included: 100 contracts per month; unlimited AI messages
+  overage: $0.15 per contract
+  purchase_at: https://getamber.dev/activate
+  source: https://getamber.dev/api/v1/pricing#subscriptions
+- id: enterprise
+  name: Enterprise
+  type: enterprise
+  price: Custom
+  billing: contract
+  included: Unlimited (subject to fair-use policy in the signed Enterprise agreement, Terms §6); volume pricing
+  source: https://getamber.dev/docs
+programs:
+- id: founding-partner
+  name: Founding Partner
+  spots_total: 10
+  spots_claimed_at_fetch: 0
+  benefits: [1000 contracts free, 50% off per-contract forever, Public listing, Direct founder access, Grandfathered pricing]
+  apply: https://ambr.run/founders
+payment_methods:
+- {method: Stripe card checkout, currency: USD, for: [credit packs, subscriptions], where: https://getamber.dev/activate}
+- {method: USDC / supported tokens on Base L2, for: [credit packs], where: 'POST /api/v1/keys with tx_hash'}
+- {method: x402 pay-per-contract, tokens: [USDC, USDbC, DAI, ETH, WETH, cbETH, cbBTC], chain: Base (eip155:8453), for: [per-call contract creation via REST or MCP], note: 'observed live: anonymous ambr_create_contract returns an x402 v2 challenge with price 500000 (USD 0.50) for d1-general-auth'}
+free_actions: [handshake, sign, verify, reader access, cNFT minting gas]
+refunds:
+  source: https://ambr.run/terms
+  policy: 'Credit packs non-refundable once the API key has been displayed, except: disputed within 14 days AND no contracts created (full refund on written request to support@ambr.run); unauthorized/duplicate charges; extended outages (prorated at Ambr''s discretion). On-chain and x402 settlements are final.'

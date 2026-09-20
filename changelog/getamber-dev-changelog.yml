@@ -1,0 +1,61 @@
+generated: '2026-09-19'
+method: searched
+source: https://github.com/getambr/ambr/blob/master/CHANGELOG.md
+docs: https://github.com/getambr/ambr/blob/master/CHANGELOG.md
+description: >-
+  Ambr keeps a dated CHANGELOG.md in its public repository (getambr/ambr; "follows Keep a Changelog 1.1.0
+  and SemVer"). There is no changelog page on ambr.run or getamber.dev (/changelog 404 on both). The
+  platform version in the changelog matches the live surface: /api/health and the agent card both report
+  0.3.4. A second, older CHANGELOG at site/CHANGELOG.md covers v0.1.0 (2026-04-03) and v0.2.0 (2026-04-08)
+  of the site itself. Entries below are the top-level file's release headings with the API-relevant
+  highlights; the file is the source of truth.
+versioning:
+  scheme: SemVer platform releases; REST path /api/v1; contract format URN ricardian-v1
+  current: 0.3.4
+  current_date: '2026-04-23'
+  detail: lifecycle/getamber-dev-lifecycle.yml
+  note: >-
+    The repository was last pushed 2026-09-05 but the newest changelog heading is 0.3.4 (2026-04-23);
+    later changes (e.g. the p2-power-of-attorney template, the public /:id/status validity endpoint and
+    the revoke endpoint now on the developers page) are not yet recorded in the changelog.
+entries:
+- version: 0.3.4
+  date: '2026-04-23'
+  latest: true
+  breaking: []
+  additions:
+  - Legibility Principle clause added across MCP tool descriptions, the A2A card extensions and llms.txt
+  - Public spec page /spec/ricardian-v1 (URN urn:ambr:ricardian-v1, MIT)
+  - Extended A2A agent card — platformVersion, releasedAt, apiVersion, additionalInterfaces (MCP + /api/health), pricing.source, compliesWith, implementsSpec, extensions io.ambr.governance
+  - server.json static MCP discovery config alongside agent.json
+  changes:
+  - llms.txt Key Pages expanded (MCP, health, spec, founders); pricing aligned to /api/v1/pricing
+- version: 0.3.3
+  date: '2026-04-23'
+  breaking: []
+  additions:
+  - Public /status page on ambr.run (7 service dots, cNFT card, 30s refresh)
+  - contracts/deployments/base.json with the live AmbrContractNFT address
+  changes:
+  - /api/health public response now per-service status strings + cnft block, CORS *
+  - Contract-generation prompts reframed around eIDAS Art. 26 / UCTA s. 11 / GDPR Art. 5 reference language; "compliant with" wording removed from public copy
+  - A2C pricing aligned to $0.20 across a1/a2/a3
+- version: 0.3.0
+  date: '2026-04-20'
+  breaking: []
+  additions:
+  - MCP x402 payment wiring — paid tools without an API key now return machine-readable x402 payment instructions instead of dead-end JSON-RPC errors
+  - Dashboard billing panel; Stripe live integration (Personal/Business plans, credit packs)
+- version: 0.2.0
+  date: '2026-04-10'
+  breaking: []
+  additions:
+  - Bilateral amendments (proposal -> counterparty accept/reject -> new version with new hash)
+  - Paired cNFTs (one per party) for active contracts
+  - EU AI Act Article 14 oversight — oversight_threshold_usd on parent delegation contracts
+  - Security hardening — MCP discovery caching, debug endpoint admin auth, rate limiter
+- version: 0.1.0
+  date: '2026-03-23'
+  breaking: []
+  additions:
+  - Initial public release — Ricardian contract engine, 6 templates, Reader Portal, REST API, A2A well-known endpoint + agent card, MCP server (6 tools), x402 middleware, API key tiers, cNFT minting on Base L2

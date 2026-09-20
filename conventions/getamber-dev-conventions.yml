@@ -1,0 +1,166 @@
+generated: '2026-09-19'
+method: searched
+source: >-
+  https://getamber.dev/docs (REST API, Contract Lifecycle, Payment Methods), https://getamber.dev/developers
+  (endpoint snippets, Mandate Lifecycle, Errors & rate limits, MCP Integration), https://ambr.run/terms
+  (refunds), https://ambr.run/spec/ricardian-v1 (versioning, hash scheme), the MCP tools/list annotations
+  (mcp/getamber-dev-mcp-tools.json) and live anonymous responses observed 2026-09-19. Ambr publishes no
+  OpenAPI, so nothing here is derived from a spec; every convention is quoted from the docs or observed.
+description: >-
+  How Ambr's API behaves across its three surfaces — REST (/api/v1), MCP (/api/mcp) and A2A (/api/a2a):
+  authentication style, idempotency (none), pagination (none), request tracing (none), versioning, error
+  envelope, rate-limit signalling, payment gating, and — the part an agent must read before it acts —
+  reversibility of the writes it can make.
+
+base_url: https://getamber.dev/api/v1
+api_style: REST over HTTPS, JSON requests and responses; plus JSON-RPC 2.0 over Streamable HTTP for MCP and A2A on the same host
+surfaces:
+  rest: https://getamber.dev/api/v1
+  mcp: https://getamber.dev/api/mcp
+  a2a: https://getamber.dev/api/a2a
+  health: https://getamber.dev/api/health
+  pricing: https://getamber.dev/api/v1/pricing
+
+authentication:
+  scheme: X-API-Key header (amb_ keys) — or x402 pay-per-call, wallet ECDSA signature, or a share token, depending on the endpoint
+  docs: https://getamber.dev/docs
+  detail: authentication/getamber-dev-authentication.yml
+
+idempotency:
+  supported: false
+  coverage: none          # full | partial | none — machine verdict read by the band gate
+  scope: []
+  mechanism: null
+  notes: >-
+    No Idempotency-Key header or client-supplied request key is documented anywhere in the docs,
+    developers page or MCP tool descriptions. A retried POST /v1/contracts creates a second contract and
+    spends a second credit. The MCP server annotates ambr_create_contract idempotentHint false and
+    ambr_agent_handshake idempotentHint true — a server-side hint that repeating a handshake with the same
+    intent is safe — but that is an annotation on one tool, not a replay-protection mechanism across the
+    write surface, so coverage is none. Signing is naturally idempotent in effect (a second identical
+    signature cannot re-activate an active contract; 409 invalid_state / already_revoked guard repeats),
+    which is state-machine protection, not idempotency.
+
+dry_run_mode:
+  supported: false
+  notes: No test mode, sandbox key prefix, dry-run flag or Base Sepolia public endpoint is documented. The free Developer tier (25 real credits) is the rehearsal path; contracts it creates are real records.
+
+reversibility:
+  grade: documented       # na | none | documented (reversal path only, 0.4) | verified (reversal path AND a stated window, 1.0)
+  read_only: false
+  summary: >-
+    Ambr's write surface creates and advances legally-framed contracts and spends credits or on-chain
+    payments. It documents one reversal operation (revoke), one rejection path (handshake reject /
+    request_changes), one cancel method (A2A tasks/cancel) and a refund policy for credit purchases, but
+    it does NOT document a way to undo a contract creation itself (no delete, no draft discard), and the
+    revoke operation is explicitly irreversible. The windows that exist are stated as contract STATES and
+    a 14-day purchase-dispute period, not as time windows on the API writes, so the grade stays at
+    documented rather than verified.
+  writes:
+  - operation: POST /api/v1/contracts  (MCP ambr_create_contract)
+    effect: creates a draft contract, spends 1 credit or an x402 payment
+    reversal: none documented
+    window: null
+    notes: 'No delete or discard endpoint is documented. Terms §6: credits are "non-refundable once the API key has been displayed" except within 14 days with no contracts created; "On-chain payments in USDC or other tokens and x402 pay-per-contract settlements are final and cannot be reversed."'
+    docs: https://ambr.run/terms
+  - operation: POST /api/v1/contracts/{id}/handshake  (MCP ambr_agent_handshake)
+    effect: records accept / reject / request_changes and a visibility preference
+    reversal: 'request_changes keeps the contract in draft; reject ends the negotiation. A recorded accept is not documented as withdrawable.'
+    window: 'while the contract is in draft (developers page: "accept → draft → pending_signature; request_changes → remains draft")'
+    docs: https://getamber.dev/developers
+  - operation: POST /api/v1/contracts/{id}/sign
+    effect: first signature moves draft/pending to pending_signature; second activates and triggers on-chain cNFT minting
+    reversal: 'POST /api/v1/contracts/{id}/revoke — the only documented way to end an active mandate from the API'
+    window: 'revoke is allowed while the contract is active, pending_signature or handshake; "Irreversible; cascades to child contracts in the delegation chain"; response.status → revoked (terminal — cannot be undone)'
+    docs: https://getamber.dev/developers
+  - operation: POST /api/v1/contracts/{id}/revoke
+    effect: sets status revoked, records revoked_by, cascades to child delegations
+    reversal: none — 'terminal — cannot be undone'
+    window: null
+    docs: https://getamber.dev/developers
+  - operation: amendments (POST /api/v1/contracts/{id}/amend, /amendments/{proposalId}/approve|reject — changelog 0.2.0 "Bilateral amendments")
+    effect: proposes a successor contract with a new hash; counterparty approves or rejects
+    reversal: 'the counterparty can reject a proposal; an approved amendment supersedes (status amended, terminal) and is not documented as reversible'
+    window: null
+    notes: Amendment endpoints appear in the changelog and MCP descriptions (parent_contract_hash, amendment_type) but are not in the docs endpoint table; recorded from the changelog, not asserted as public reference.
+    docs: https://github.com/getambr/ambr/blob/master/CHANGELOG.md
+  - operation: A2A tasks/cancel
+    effect: cancels an A2A task
+    reversal: n/a
+    window: null
+    notes: 'Advertised in the /api/a2a GET self-description; of limited use because "Ambr processes tasks synchronously — results are returned in the message/send response" (observed tasks/get error).'
+  - operation: POST /api/v1/keys, credit packs and subscriptions
+    effect: issues a key / adds credits / starts a subscription (Stripe or USDC)
+    reversal: 'refund on written request to support@ambr.run'
+    window: 'card purchases: within 14 days AND no contracts created with the key; unauthorized/duplicate charges refunded on verification; on-chain and x402 payments final'
+    docs: https://ambr.run/terms
+  - operation: cNFT transfer
+    effect: moves the ERC-721 record to another wallet
+    reversal: 'counterparty-gated — both signing parties must approve a transfer, which prevents unilateral reassignment; an executed transfer is on-chain and not reversible by Ambr'
+    window: null
+    docs: https://getamber.dev/docs
+
+pagination:
+  style: none
+  notes: No pagination parameters are documented. GET /api/v1/templates returns the whole catalogue (10 templates, 18.5 KB) in one response; there is no documented list-contracts endpoint (the MCP reviewer on Glama notes the same gap).
+
+field_expansion:
+  supported: false
+  notes: 'Not a parameter; the docs describe a visibility model instead — anonymous GET /v1/contracts/:id returns metadata only, an API key (creator) or share token returns the full human_readable + machine_readable payloads.'
+
+metadata:
+  supported: false
+  notes: No free-form metadata field is documented on contracts; template parameters are the extensible surface (parameter_schema per template).
+
+request_tracing:
+  request_id_header: null
+  notes: No request-id header is documented or observed (responses carry Vercel's x-vercel-id edge header only).
+
+versioning:
+  scheme: URL path major version (/api/v1) + SemVer platformVersion + URN-versioned contract format (urn:ambr:ricardian-v1)
+  mechanism: path prefix; breaking format changes get a new URN, non-breaking additions bump platformVersion on the discovery endpoints
+  current: v1 / platform 0.3.4 / ricardian-v1
+  detail: lifecycle/getamber-dev-lifecycle.yml
+  changelog: changelog/getamber-dev-changelog.yml
+  docs: https://ambr.run/spec/ricardian-v1
+
+error_envelope:
+  media_type: application/json
+  rfc9457: false
+  shape: '{ "error": <snake_case code>, "message": <text>, "details"?: [...], "retry_after_ms"?: <int> }'
+  jsonrpc: 'MCP and A2A return HTTP 200 with JSON-RPC error objects (-32601, -32001) or result.isError'
+  detail: errors/getamber-dev-problem-types.yml
+  docs: https://getamber.dev/developers
+
+rate_limits:
+  signal_status: 429
+  error_code: rate_limited
+  retry_signal: retry_after_ms in the JSON body (no Retry-After / RateLimit-* headers)
+  published_limits: 'revoke 5 requests/minute/IP; other writes limited per IP or per key, unquantified'
+  detail: rate-limits/getamber-dev-rate-limits.yml
+  docs: https://getamber.dev/developers
+
+payment_gating:
+  mechanism: x402 v2 — HTTP 402 (REST) or JSON-RPC -32001 (MCP) with price, chain base, recipient, accepted tokens; retry with X-Payment tx hash
+  canonical_prices: https://getamber.dev/api/v1/pricing
+  detail: plans/getamber-dev-plans-pricing.yml
+
+webhooks:
+  supported: false
+  notes: No outbound webhooks or event stream are documented (the only webhook in the system is Stripe's inbound one). Contract state is polled via GET /v1/contracts/:id/status.
+
+other_conventions:
+- name: Identifier formats
+  detail: 'contract_id amb-YYYY-NNNN; contracts are also addressable by 64-hex SHA-256 hash or UUID (all three accepted by GET /v1/contracts/:id and the MCP tools)'
+- name: Content hash
+  detail: 'sha256_hex(utf8(prose + "\n---\n" + canonical_json)) — keys sorted lexicographically at every depth, arrays in order, JSON.stringify with no whitespace; any party can recompute without calling Ambr (spec page)'
+- name: Validity check
+  detail: 'GET /v1/contracts/:id/status is public and returns is_currently_valid, is_expired, revoked_at, expiry_date — "For the live answer, always check GET /:id/status → is_currently_valid" because expiry is derived and the status column may still read active'
+- name: Human-oversight threshold
+  detail: 'oversight_threshold_usd on a parent delegation holds child contracts above it at awaiting_principal_approval until a human signs (EU AI Act Art. 14 framing, changelog 0.2.0 / MCP inputSchema)'
+- name: Timestamps
+  detail: ISO 8601 UTC (created_at, releasedAt, health timestamp)
+- name: Money
+  detail: 'price_cents integers in the pricing endpoint and templates; x402 challenge price is the integer minor amount in the token''s decimals (500000 = USD 0.50 in USDC)'
+- name: CORS
+  detail: 'access-control-allow-origin: * on the agent card, /api/a2a, /api/v1/pricing and /api/health; /api/a2a also allows X-API-Key and Authorization headers'

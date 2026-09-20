@@ -1,0 +1,58 @@
+specification: API Commons Rate Limits
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/RateLimits
+provider: Ambr
+providerId: getamber-dev
+generated: '2026-09-19'
+method: searched
+created: '2026-09-19'
+modified: '2026-09-19'
+source: https://getamber.dev/developers
+sources:
+- https://getamber.dev/developers
+- https://github.com/getambr/ambr/blob/master/CHANGELOG.md
+limit_count: 1
+description: >-
+  Ambr documents rate limiting in one paragraph of its developers page ("Errors & rate limits"): "Several
+  write endpoints are rate-limited, per IP or per API key (revocation allows 5 requests per minute per IP).
+  Back off and retry after retry_after_ms on 429." The only numeric limit published is the revoke
+  endpoint's; the other write limits are stated to exist but not quantified. The 429 body carries the
+  error code rate_limited and a retry_after_ms field — the retry signal is IN THE BODY, not a Retry-After
+  or RateLimit-* header. The 0.2.0 changelog entry (2026-04-10) lists "rate limiter" under security
+  hardening. Probed 2026-09-19: twelve consecutive anonymous GETs to /api/v1/pricing all returned 200 with
+  no RateLimit-*, X-RateLimit-* or Retry-After headers, so read endpoints expose no per-request quota
+  signal. limit_count reflects the one quantified limit; the unquantified write limits are recorded below
+  with limit null rather than invented.
+headers:
+  rateLimit: null
+  rateLimitRemaining: null
+  rateLimitReset: null
+  retryAfter: null
+  requestId: null
+  note: No rate-limit headers are documented or observed. Retry guidance is the retry_after_ms field of the 429 JSON body.
+responseCodes:
+  throttled: 429
+  errorCode: rate_limited
+  bodyField: retry_after_ms
+limits:
+- name: Revoke contract
+  endpoint: POST /api/v1/contracts/{id}/revoke
+  scope: ip
+  metric: requests_per_minute
+  limit: 5
+  timeFrame: minute
+  source: https://getamber.dev/developers
+- name: Other write endpoints
+  endpoint: 'POST /api/v1/contracts, /handshake, /sign, /keys and other writes'
+  scope: 'per IP or per API key (docs do not say which applies to which)'
+  metric: requests
+  limit: null
+  timeFrame: null
+  note: 'Documented as rate-limited ("Several write endpoints are rate-limited, per IP or per API key") but no number is published.'
+  source: https://getamber.dev/developers
+observed:
+- url: https://getamber.dev/api/v1/pricing
+  requests: 12
+  statuses: [200]
+  rate_limit_headers: none
+  fetched: '2026-09-19'
