@@ -123,3 +123,74 @@ free_actions: [handshake, sign, verify, reader access, cNFT minting gas]
 refunds:
   source: https://ambr.run/terms
   policy: 'Credit packs non-refundable once the API key has been displayed, except: disputed within 14 days AND no contracts created (full refund on written request to support@ambr.run); unauthorized/duplicate charges; extended outages (prorated at Ambr''s discretion). On-chain and x402 settlements are final.'
+x-canonical:
+  generated: '2026-10-08'
+  vocabulary: all/0-working/economics/plans-canonical.yml
+  models:
+  - free
+  - metered
+  - negotiated
+  - prepaid
+  - subscription
+  units: []
+  plans:
+  - name: Developer (free tier)
+    access: free
+    model: free
+    model_how: derived
+    units: []
+    periods: []
+  - name: Personal / consumer tier (per contract)
+    access: other
+    model: metered
+    model_how: stated
+    units: []
+    periods: []
+  - name: Delegation tier (per contract)
+    access: other
+    model: metered
+    model_how: stated
+    units: []
+    periods: []
+  - name: Agent-to-Agent / commerce tier (per contract)
+    access: other
+    model: metered
+    model_how: stated
+    units: []
+    periods: []
+  - name: Fleet Multi-Agent tier (per contract)
+    access: other
+    model: metered
+    model_how: stated
+    units: []
+    periods: []
+  - name: Starter Pack
+    access: other
+    model: prepaid
+    model_how: stated
+    units: []
+    periods: []
+  - name: Scale Pack
+    access: other
+    model: prepaid
+    model_how: stated
+    units: []
+    periods: []
+  - name: Personal
+    access: other
+    model: subscription
+    model_how: stated
+    units: []
+    periods: []
+  - name: Business
+    access: other
+    model: subscription
+    model_how: stated
+    units: []
+    periods: []
+  - name: Enterprise
+    access: enterprise
+    model: negotiated
+    model_how: derived
+    units: []
+    periods: []
