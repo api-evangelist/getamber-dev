@@ -64,10 +64,135 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Ambr (ambr.run; platform getamber.dev) is the Agent Mandate & Binding Registry — an agent-native service that creates, signs, verifies and revokes dual-format Ricardian contracts for AI agents (delegation mandates, agent-to-agent commerce, agent-to-consumer agreements), hashed with SHA-256 and minted as ERC-721 cNFTs on Base L2. It exposes a JSON REST API, a remote MCP server and an A2A JSON-RPC endpoint discovered through an agent card. This profile was enriched 2026-09-19 from Ambr's public surface: the agent card, the live MCP tools/list, the pricing and health endpoints, the docs and developers pages, the legal pages, and the getambr/ambr repository (CHANGELOG, SECURITY.md, MIT contract-template JSON Schemas). Ambr publishes no OpenAPI and no SDK.
+Ambr (ambr.run; platform and API host getamber.dev) is the "Agent Mandate & Binding Registry" — an agent-native service that creates, signs, verifies and revokes Ricardian contracts for AI agents: delegation mandates recording who authorized an agent, in what scope and under which law, plus agent-to-agent commerce and agent-to-consumer agreements. Every contract is dual-format — legal prose and machine-parsable JSON bound by one SHA-256 hash (urn:ambr:ricardian-v1, MIT) — and once signed by both wallets is minted as an ERC-721 cNFT on Base L2. The surface is a JSON REST API at getamber.dev/api/v1 with a public pricing endpoint, a remote MCP server at /api/mcp (six tools, anonymous tools/list) and an A2A JSON-RPC endpoint discovered via /.well-known/agent-card.json. Auth is an X-API-Key, x402 pay-per-contract on Base, or an ECDSA wallet signature; 25 free developer contracts. No OpenAPI or SDK is published. Not Amber International (Nasdaq: AMBR).
 
-- Website: https://ambr.run/
-- Platform / API host: https://getamber.dev/
-- Docs: https://getamber.dev/docs · Developers: https://getamber.dev/developers
-- Agent card: https://getamber.dev/.well-known/agent-card.json · MCP: https://getamber.dev/api/mcp · A2A: https://getamber.dev/api/a2a
-- Source: https://github.com/getambr/ambr
+**Areas:** Company · AI Agents · Agentic Commerce · Contracts · Legal · Ricardian Contracts · Delegation · Blockchain · Base L2 · MCP · A2A · x402
+
+## Ambr on APIs.io
+
+Everything profiled for Ambr is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/getamber-dev/](https://apis.io/providers/getamber-dev/)** — or go straight to one of the APIs or properties below.
+
+### APIs (3)
+
+- [Ambr REST API](https://apis.io/apis/getamber-dev/ambr-rest-api/) — JSON REST API at https://getamber.dev/api/v1 for the full mandate lifecycle: list templates (public), create a contract from a template (X-API-Key with…
+- [Ambr MCP Server](https://apis.io/apis/getamber-dev/ambr-mcp-server/) — One remote Model Context Protocol server at https://getamber.dev/api/mcp — Streamable HTTP in stateless JSON mode, protocol version 2025-03-26, serverInfo…
+- [Ambr A2A Agent](https://apis.io/apis/getamber-dev/ambr-a2a-agent/) — Agent-to-Agent JSON-RPC endpoint at https://getamber.dev/api/a2a implementing message/send, tasks/get and tasks/cancel (tasks are processed synchronously),…
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [getamber-dev-mcp.yml](https://apis.io/servers/getamber-dev/getamber-dev-mcp-yml/)
+
+#### JSON Schema (6)
+
+The data models the API reads and writes.
+
+- [Getamber Dev C1 Api Access](https://apis.io/schemas/getamber-dev/getamber-dev-c1-api-access/)
+- [Getamber Dev C2 Compute Sla](https://apis.io/schemas/getamber-dev/getamber-dev-c2-compute-sla/)
+- [Getamber Dev C3 Task Execution](https://apis.io/schemas/getamber-dev/getamber-dev-c3-task-execution/)
+- [Getamber Dev D1 General Auth](https://apis.io/schemas/getamber-dev/getamber-dev-d1-general-auth/)
+- [Getamber Dev D2 Limited Service](https://apis.io/schemas/getamber-dev/getamber-dev-d2-limited-service/)
+- [Getamber Dev D3 Fleet Auth](https://apis.io/schemas/getamber-dev/getamber-dev-d3-fleet-auth/)
+
+#### Examples (1)
+
+Example requests and responses.
+
+- [Getamber Dev Templates Response](https://apis.io/examples/getamber-dev/getamber-dev-templates-response/)
+
+#### Security (3)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Getamber Dev Authentication](https://apis.io/security/getamber-dev/getamber-dev-authentication/)
+- [Getamber Dev Domain Security](https://apis.io/security/getamber-dev/getamber-dev-domain-security/)
+- [Getamber Dev Vulnerability Disclosure](https://apis.io/security/getamber-dev/getamber-dev-vulnerability-disclosure/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Getamber Dev Plans Pricing](https://apis.io/plans/getamber-dev/getamber-dev-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Getamber Dev Rate Limits](https://apis.io/rate-limits/getamber-dev/getamber-dev-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://ambr.run/)
+- [Documentation](https://getamber.dev/docs)
+- [Getting started](https://getamber.dev/docs)
+- [API reference](https://getamber.dev/developers)
+- [Pricing](https://getamber.dev/activate)
+- [Sign up](https://getamber.dev/activate)
+- [Support](https://discord.com/invite/HjvJFfjr)
+- [Changelog](https://github.com/getambr/ambr/blob/master/CHANGELOG.md)
+- [Terms of service](https://ambr.run/terms)
+- [Privacy policy](https://ambr.run/privacy)
+- [GitHub](https://github.com/getambr)
+- [Status](https://ambr.run/status)
+
+## API Evangelist rating
+
+**Kin Score 53.7** — developing · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 80.0 |
+| Contract quality | 18.5 |
+| Contract governance | 18.2 |
+| Operational transparency | 68.4 |
+| Developer ergonomics | 56.5 |
+| Access clarity | 76.3 |
+
+**Agent readiness 15.0** — agent-aware
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | — |
+| Agentic Access | — |
+| Reversibility Documented | — |
+| MCP Server | documented (partial credit) |
+| Auth Clarity | bearer (partial credit) |
+| Idempotency | — |
+| Error Semantics | documented (partial credit) |
+| OpenAPI Examples | documented (partial credit) |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | — |
+| Agent Skills | derived (partial credit) |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | flavored (partial credit) |
+| Dry Run Mode | — |
+| Delegated Identity | — |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+| Pagination Ratio | na |
+| Operation Distinctiveness | na |
+
+**Regulatory alignment 38.2** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/getamber-dev/](https://apis.io/providers/getamber-dev/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for Ambr: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/getamber-dev/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
